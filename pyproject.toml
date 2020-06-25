@@ -28,6 +28,7 @@ click = "^7.0"
 git-filter-repo = "^2.26.0"
 pygit2 = "^1.2.1"
 appdirs = "^1.4.4"
+"github3.py" = "^1.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.3"

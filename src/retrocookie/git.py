@@ -1,12 +1,14 @@
 """Git interface."""
 from __future__ import annotations
 
+import contextlib
 import functools
 import operator
 import subprocess  # noqa: S404
 from pathlib import Path
 from typing import Any
 from typing import cast
+from typing import Iterator
 from typing import List
 from typing import Optional
 
@@ -148,3 +150,42 @@ class Repository:
         )
 
         self.repo.state_cleanup()
+
+    @contextlib.contextmanager
+    def worktree(
+        self,
+        branch: str,
+        path: Path,
+        *,
+        base: str = "HEAD",
+        force: bool = False,
+        force_remove: bool = False,
+    ) -> Iterator[Repository]:
+        """Context manager to add and remove a worktree."""
+        try:
+            yield self.add_worktree(branch, path, base=base, force=force)
+        finally:
+            self.remove_worktree(path, force=force_remove)
+
+    def add_worktree(
+        self, branch: str, path: Path, *, base: str = "HEAD", force: bool = False,
+    ) -> Repository:
+        """Add a worktree."""
+        self.git(
+            "worktree",
+            "add",
+            str(path),
+            "--no-track",
+            "-B" if force else "-b",
+            branch,
+            base,
+        )
+
+        return Repository(path)
+
+    def remove_worktree(self, path: Path, *, force: bool = False) -> None:
+        """Remove a worktree."""
+        if force:
+            self.git("worktree", "remove", "--force", str(path))
+        else:
+            self.git("worktree", "remove", str(path))
